@@ -7,30 +7,31 @@ using namespace std;
 int registers[32];
 
 char* mainmem[4096];
+int pc;		//program counter
+int pcfixed=0; //for branch statements to prevent pc++ in main function
 
-
+//--------BINARY TO DECIMAL-------------
 int bintodec(char* str){
+	int dec = 0;
+	int m = 1;
+	int k=strlen(str)-1;
+	printf(" int form : %s\n", str);
+	while(k>=0){
+		if(str[k]=='1'){
+			dec+=m;
+		}
+		m*=2;
+		k--;
 
-int dec = 0;
-int m = 1;
-int k=strlen(str)-1;
-printf(" int form : %s\n", str);
-while(k>=0){
-	if(str[k]=='1'){
-		dec+=m;
 	}
-	m*=2;
-	k--;
 
-}
-
-printf(" dec form : %d\n", dec);
-return dec;
+	printf(" dec form : %d\n", dec);
+	return dec;
 
 }
 
 
-
+//---------SUBSTRING-----------------------
 char* substr(char* arr, int begin, int len)
 {
     char* res = new char[len];
@@ -40,7 +41,7 @@ char* substr(char* arr, int begin, int len)
     return res;
 }
 
-
+//-----DECIMAL TO BINARY--------------------
 void dectobin(int n,char* str){
 int binaryNum=0; 
 
@@ -69,6 +70,8 @@ strcat(bin32,str);
 strcpy(str,bin32);
 cout<<strlen(str)<<endl;
 }
+
+//---------EXECUTION------------------------
 void execute(char* instr){
 	char opcode[7];
 	printf("in execute\n");
@@ -81,16 +84,6 @@ void execute(char* instr){
 	strcpy(rd,substr(instr,16,5));
 	strcpy(shamt,substr(instr,21,5));
 	strcpy(offset,substr(instr,16,16));
-	/*strncpy(rs,instr+6,5);
-	strncpy(rt,instr+11,5);
-	strncpy(rd,instr+16,5);
-	strncpy(shamt,instr+21,5);
-	strncpy(offset,instr+16,16);
-	offset[17]='\0';
-	rs[6]='\0';
-	rt[6]='\0';
-	rd[6]='\0';
-	shamt[6]='\0';*/
 	cout<<"rs with substr"<<rs<<endl;
 	cout<<rs<<" "<<rt<<" "<<rd<<" "<<shamt<<" "<<offset<<endl;
 	printf("check %d \n", strcmp(opcode,"000000"));
@@ -109,6 +102,7 @@ void execute(char* instr){
 			int power = bintodec(shamt);
 			registers[dest] = registers[r2] * pow(2,power);
 			printf("reg %d : %d\n",dest,registers[dest]);
+			pcfixed=0;
 		//sll
 		}
 		else if(strcmp(func,"000010")==0){
@@ -120,6 +114,7 @@ void execute(char* instr){
 			int power = bintodec(shamt);
 			registers[dest] = registers[r2] / pow(2,power);
 			printf("reg %d : %d\n",dest,registers[dest]);
+			pcfixed=0;
 		printf("srl\n");			
 		//srl
 		}
@@ -131,7 +126,7 @@ void execute(char* instr){
 
 			registers[dest] = registers[r2] + registers[r1];
 			printf("reg %d : %d\n",dest,registers[dest]);
-			
+			pcfixed=0;
 		//add
 		}
 		else if(strcmp(func,"100010")==0){
@@ -141,7 +136,7 @@ void execute(char* instr){
 			int dest = bintodec(rd);
 			registers[dest] = registers[r2] - registers[r1];
 			printf("reg %d : %d\n",dest,registers[dest]);
-			
+			pcfixed=0;
 		//sub
 		}
 		
@@ -161,7 +156,7 @@ void execute(char* instr){
 			cout<<"num "<<num<<endl;
 			registers[r2]=num;
 			printf("registers %d : %d\n",(r2),registers[r2]);
-			
+			pcfixed=0;
 		printf("lw\n");
 
 	}
@@ -177,15 +172,103 @@ void execute(char* instr){
 			cout<<"str bin "<<bin<<endl;
 			mainmem[r1+i]=bin;
 			printf("mainmem %d : %s\n",(r1+i),mainmem[r1+i]);
-
+			pcfixed=0;
 
 		printf("sw\n");
 
 	}
+	else if(strcmp(opcode,"001000")==0){
+
+			pc = registers[31];
+			pcfixed = 1;
+			
+
+		printf("jr\n");
+	//jr
+	}
+	else if(strcmp(opcode,"000101")==0){
+			int r1 = bintodec(rs);
+			int r2 = bintodec(rt);
+			int i = bintodec(offset);
+			if(r1!=r2){
+			pc += i;
+			pcfixed=1;
+			}
+			else{
+			pcfixed=0;
+			}
+		
+		printf("bne\n");
+	//bne
+	}
+	else if(strcmp(opcode,"000100")==0){
+			int r1 = bintodec(rs);
+			int r2 = bintodec(rt);
+			int i = bintodec(offset);
+			if(r1==r2){
+			pc += i;
+			pcfixed=1;
+			}
+			else{
+			pcfixed=0;
+			}
+		
+		printf("beq\n");
+	//beq
+	}
+	else if(strcmp(opcode,"000110")==0){
+			int r1 = bintodec(rs);
+			int i = bintodec(offset);
+			if(r1<=0){
+			pc += i;
+			pcfixed=1;
+			}
+			else{
+			pcfixed=0;
+			}
+		
+		printf("blez\n");
+	//blez
+	}
+	else if(strcmp(opcode,"000111")==0){
+			int r1 = bintodec(rs);
+			int i = bintodec(offset);
+			if(r1>0){
+			pc += i;
+			pcfixed=1;
+			}
+			else{
+			pcfixed=0;
+			}
+		
+		printf("bgtz\n");
+	//bgtz
+	}
+	else if(strcmp(opcode,"000010")==0){
+			char jaddr[26];
+			strcpy(jaddr,substr(instr,16,5));
+			pc = bintodec(jaddr);
+			pcfixed = 1;
+			
+
+		printf("j\n");
+	//j
+	}
+	else if(strcmp(opcode,"000011")==0){
+			registers[31]=pc+1;
+			char jaddr[26];
+			strcpy(jaddr,substr(instr,16,5));
+			pc = bintodec(jaddr);
+			pcfixed = 1;
+			
+
+		printf("j\n");
+	//jal
+	}
 }
 
 
-
+//----------MAIN FN----------------------------------------
 int main(){
 
 char* test[3];
@@ -202,7 +285,6 @@ for(int i=0;i<4096;i++){
 	//printf("init %d\n",i);
 	mainmem[i] = (char*)malloc(32 * sizeof(char));
 	strcpy(mainmem[i],"00000000000000000000000000000000");
-	//printf(" instr %d %s\n",i,mainmem[i]);
 }
 strcpy(mainmem[0],"00000000001000100000100000000000");
 strcpy(mainmem[1],"10001100001000110000100000000000");
@@ -215,14 +297,15 @@ printf(" instr %d %s\n",p,mainmem[p]);
 }
 printf("%d val of i: \n",i);
 printf(" instr %d %s\n",i,mainmem[i]);
-while(strcmp(mainmem[i],"00000000000000000000000000000000")){
-	printf(" instr %d %s\n",i,mainmem[i]);
-	execute(mainmem[i]);
-	i++;
-
+while(strcmp(mainmem[pc],"00000000000000000000000000000000")){
+	printf(" instr %d %s\n",pc,mainmem[pc]);
+	execute(mainmem[pc]);
+	if(!pcfixed){
+	pc++;
+	}
 }
 
-printf("no of instr : %d\n",i);
+printf("no of instr : %d\n",pc);
 return 0;
 }
 
