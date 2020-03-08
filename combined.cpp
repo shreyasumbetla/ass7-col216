@@ -25,76 +25,21 @@ int pcfixed=0; //for branch statements to prevent pc++ in main function
 
 ////////////////////////////////////////////////////////////// execution part //////////////////////////////////////////////////////////
 
-
-void reverse(char* str){
-	char rev[50]="";
-	int n1 = strlen(str);
-	for(int i=0; i<strlen(str);i++){
-		rev[i]=str[n1-i-1];		
-	}
-strcpy(str,rev);
-}
-
 //--------BINARY TO DECIMAL-------------
 int bintodec(char* str){
-
-		int dec = 0;
-		int m = 1;
-		int k=strlen(str)-1;
-		printf(" bin form : %s\n", str);
-		cout<<"length of bin: "<<strlen(str)<<endl;
-		while(k>=0){
-			if(str[k]=='1'){
-				dec+=m;
-			}
-			m*=2;
-			k--;
-
-		}
-	
-	
-	printf(" dec form : %d\n", dec);
-	return dec;
-
-}
-
-//--------BINARY TO DECIMAL SIGNED-------------
-int bintodecsigned(char* str){
 	int dec = 0;
-		if(str[0]=='0'){
-			dec = 0;
-			int m = 1;
-			int k=strlen(str)-1;
-			printf(" bin form : %s\n", str);
-		cout<<"length of bin: "<<strlen(str)<<endl;
-			while(k>=0){
-				if(str[k]=='1'){
-					dec+=m;
-				}
-				m*=2;
-				k--;
-
-			}
+	int m = 1;
+	int k=strlen(str)-1;
+	printf(" int form : %s\n", str);
+	while(k>=0){
+		if(str[k]=='1'){
+			dec+=m;
 		}
-		else{
-			dec = 0;
-			int m = 1;
-			int k=strlen(str)-1;
-			printf(" int form : %s\n", str);
-		cout<<"length of bin: "<<strlen(str)<<endl;
-			while(k>=0){
-				if(str[k]=='1'){
-					dec+=m;
-				}
-				m*=2;
-				k--;
+		m*=2;
+		k--;
 
-			}
-			cout<<pow(2,strlen(str))<<endl;
-			cout<<"dec form neg "<<dec<<endl;
-			dec = dec - pow(2,strlen(str));
-		}
-	
+	}
+
 	printf(" dec form : %d\n", dec);
 	return dec;
 
@@ -111,59 +56,36 @@ char* substr(char* arr, int begin, int len)
     return res;
 }
 
-
 //-----DECIMAL TO BINARY--------------------
 void dectobin(int n,char* str){
-int binaryNum=0; 
-int neg=0;
-    // counter for binary array 
-    int i = 0; 
-	cout<<"in dec to bin n:"<<n<<endl;
-char bin[32]=""; 
-if(n<0){
-n=n+2147483648;
-neg=1;
-}
-    while (n > 0) { 
-  
-        // storing remainder in binary array 
-	int d = n%2;
-	cout<<"d "<<d<<endl;
-	if(d==1)
-	strcat(bin,"1");
-	else
-	strcat(bin,"0");
-       // binaryNum+= (n % 2); 
-	//cout<<binaryNum<<endl;
-        n = n / 2; 
-        i++; 
-	//binaryNum*=10;
-    } 
-cout<<bin<<endl;
-//sprintf(str, "%d", binaryNum);
-reverse(bin);
-cout<<bin<<endl;
+	int binaryNum=0; 
 
+    	// counter for binary array 
+    	int i = 0; 
+	cout<<"in dec to bin n:"<<n<<endl; 
+    	while (n > 0) { 
+  
+		// storing remainder in binary array 
+		binaryNum+= (n % 2); 
+		cout<<binaryNum<<endl;
+		n = n / 2; 
+		i++; 
+		binaryNum*=10;
+    	} 
+
+sprintf(str, "%d", binaryNum);
 int l = 0;
 char bin32[32]="";
-cout<<"l "<<strlen(bin)<<endl;
 
-while(l<(32-strlen(bin))){
-if(neg==0)
+while(l<(32-strlen(str))){
 strcat(bin32,"0");
-else
-strcat(bin32,"1");
 l++;
 }
-strcat(bin32,bin);
+strcat(bin32,str);
 
 strcpy(str,bin32);
-
-
 cout<<strlen(str)<<endl;
 }
-
-
 
 //---------EXECUTION------------------------
 void execute(char* instr){
@@ -193,7 +115,7 @@ void execute(char* instr){
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
 			int dest = bintodec(rd);
-			int power = bintodecsigned(shamt);
+			int power = bintodec(shamt);
 			registers[dest] = registers[r2] * pow(2,power);
 			printf("reg %d : %d\n",dest,registers[dest]);
 			pcfixed=0;
@@ -205,7 +127,7 @@ void execute(char* instr){
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
 			int dest = bintodec(rd);
-			int power = bintodecsigned(shamt);
+			int power = bintodec(shamt);
 			registers[dest] = registers[r2] / pow(2,power);
 			printf("reg %d : %d\n",dest,registers[dest]);
 			pcfixed=0;
@@ -244,15 +166,15 @@ void execute(char* instr){
 			char bin[32]="";
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
-			int i = bintodecsigned(offset);
-			cout<<"reg r2:"<<arr[r1+i]<<r2<<endl;
-			int num = bintodec(arr[r1+i]);
+			int i = bintodec(offset);
+			cout<<"reg r2:"<<mainmem[r1+i]<<r2<<endl;
+			int num = bintodec(mainmem[r1+i]);
 			cout<<"num "<<num<<endl;
 			registers[r2]=num;
 			printf("registers %d : %d\n",(r2),registers[r2]);
 			pcfixed=0;
 		printf("lw\n");
-	//lw
+
 	}
 	else if(strcmp(opcode,"101011")==0){
 			printf("sw\n");
@@ -260,17 +182,16 @@ void execute(char* instr){
 			char bin[32]="";
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
-			int i = bintodecsigned(offset);
+			int i = bintodec(offset);
 			cout<<"reg r2:"<<registers[r2]<<r2<<endl;
 			dectobin(registers[r2],bin);
-			cout<<"str bin "<<bin<<" "<<strlen(bin)<<endl;
-			//strcpy(arr[r1+i],bin);
-			arr[r1+i]=bin;
-			printf("arr %d : %s\n",(r1+i),arr[r1+i]);
+			cout<<"str bin "<<bin<<endl;
+			mainmem[r1+i]=bin;
+			printf("mainmem %d : %s\n",(r1+i),mainmem[r1+i]);
 			pcfixed=0;
 
 		printf("sw\n");
-	//sw
+
 	}
 	else if(strcmp(opcode,"001000")==0){
 
@@ -284,7 +205,7 @@ void execute(char* instr){
 	else if(strcmp(opcode,"000101")==0){
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
-			int i = bintodecsigned(offset);
+			int i = bintodec(offset);
 			if(r1!=r2){
 			pc += i;
 			pcfixed=1;
@@ -299,7 +220,7 @@ void execute(char* instr){
 	else if(strcmp(opcode,"000100")==0){
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
-			int i = bintodecsigned(offset);
+			int i = bintodec(offset);
 			if(r1==r2){
 			pc += i;
 			pcfixed=1;
@@ -313,7 +234,7 @@ void execute(char* instr){
 	}
 	else if(strcmp(opcode,"000110")==0){
 			int r1 = bintodec(rs);
-			int i = bintodecsigned(offset);
+			int i = bintodec(offset);
 			if(r1<=0){
 			pc += i;
 			pcfixed=1;
@@ -327,7 +248,7 @@ void execute(char* instr){
 	}
 	else if(strcmp(opcode,"000111")==0){
 			int r1 = bintodec(rs);
-			int i = bintodecsigned(offset);
+			int i = bintodec(offset);
 			if(r1>0){
 			pc += i;
 			pcfixed=1;
@@ -361,9 +282,6 @@ void execute(char* instr){
 	//jal
 	}
 }
-
-
-
 
 
 
@@ -698,7 +616,7 @@ void generateBinaryOfInteger(char* str, char* str1){
 	stringstream geek(str); int x = 0; geek >> x;
 	
 		int binaryNum[32]; 
-  	int n = x;
+  	int n = x; if(x<0) n= n+ 16;
 	    // counter for binary array 
 	    int i = 0; 
 	    while (n > 0) { 
@@ -730,6 +648,7 @@ void generateBinaryOfIntegerBig(char* str, char* str1){
 		int binaryNum[32]; 
   	int n = x;
 	    // counter for binary array 
+		if(x<0) n = n+ 32768;
 	    int i = 0; 
 	    while (n > 0) { 
 	  
@@ -745,8 +664,11 @@ void generateBinaryOfIntegerBig(char* str, char* str1){
 		str2[j] = (binaryNum[j]) + '0';
 
 		int gh = 16 - strlen(str2);
-		for(int gy = 0; gy<gh;gy++) str1[gy] = '0';
-		strcat(str1,str2);
+		if(gh !=0){
+		for(int gy = 0; gy<gh;gy++) strcat(str1,"0");
+		strcat(str1,str2);}
+
+		else strcpy(str1,str2);
 		
 }
 
@@ -756,7 +678,7 @@ void generateBinaryOfIntegerBigger(char* str, char* str1){
 	stringstream geek(str); int x = 0; geek >> x;
 	
 		int binaryNum[32]; 
-  	int n = x;
+  	int n = x; if(x<0) n = n + 2147483648;
 	    // counter for binary array 
 	    int i = 0; 
 	    while (n > 0) { 
@@ -1034,16 +956,10 @@ int main (int agrc, char** argv)
     	while(fgets(buffer,sizeof buffer, fptr) != NULL){
 		
     		proces(buffer);
-		//execute(arr[NumOfInstr-1]);		
+		execute(arr[NumOfInstr-1]);		
 	}
 		
-while(strcmp(arr[pc],"00000000000000000000000000000000")){
-	printf(" instr %d %s\n",pc,arr[pc]);
-	execute(arr[pc]);
-	if(!pcfixed){
-	pc++;
-	}
-}
+
 
 	//printf("%s\n",arr[NumOfInstr-1]);
 	fclose(fptr);
