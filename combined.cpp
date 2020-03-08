@@ -289,6 +289,7 @@ void execute(char* instr){
 
 void generateBinaryOfInteger(char* str, char* str1);
 void generateBinaryOfIntegerBig(char* str, char* str1);
+void generateBinaryOfIntegerBigger(char* str, char* str1);
 void generateBinaryOfReg(char* str, char* str1);
 void parseSpace(char* str, char** parsed);
 int decode(char* str);
@@ -419,29 +420,113 @@ void generateInstr(char** parts, char* instr){
 		generateBinaryOfReg(parts[2],tempOp2);
 
 		char tempJ[10] = "";
-		generateBinaryOfInteger(parts[3],tempJ);
+		generateBinaryOfIntegerBig(parts[3],tempJ);
 
 		strcpy(instr,"000100");
 		strcat(instr,tempOp1);
 		strcat(instr,tempOp2);
+		strcat(instr,tempJ);
 		
 		
 	}
 
-	else if(strcmp(parts[0],"bne") == 0){printf("bne");
+	else if(strcmp(parts[0],"bne") == 0){
+		printf("bne");
+		char tempOp1[10] = "";
+		generateBinaryOfReg(parts[1],tempOp1);
 
+		char tempOp2[10] = "";
+		generateBinaryOfReg(parts[2],tempOp2);
+
+		char tempJ[10] = "";
+		generateBinaryOfIntegerBig(parts[3],tempJ);
+
+		strcpy(instr,"000101");
+		strcat(instr,tempOp1);
+		strcat(instr,tempOp2);
+		strcat(instr,tempJ);
+	}
+
+
+	else if(strcmp(parts[0],"blez") == 0){
+		printf("blez");
+		char tempOp1[10] = "";
+		generateBinaryOfReg(parts[1],tempOp1);
+		/*
+		char tempOp2[10] = "";
+		generateBinaryOfReg(parts[2],tempOp2);*/
+
+		char tempJ[10] = "";
+		generateBinaryOfIntegerBig(parts[3],tempJ);
+
+		strcpy(instr,"000110");
+		strcat(instr,tempOp1);
+		strcat(instr,"00000");
+		strcat(instr,tempJ);
+	}
+
+
+	else if(strcmp(parts[0],"bgtz") == 0){
+		printf("bgtz");/*
+		char tempOp1[10] = "";
+		generateBinaryOfReg(parts[1],tempOp1);
+
+		char tempOp2[10] = "";
+		generateBinaryOfReg(parts[2],tempOp2);
+
+		char tempJ[10] = "";
+		generateBinaryOfIntegerBig(parts[3],tempJ);
+
+		strcpy(instr,"000101");
+		strcat(instr,tempOp1);
+		strcat(instr,tempOp2);
+		strcat(instr,tempJ);*/
+
+
+
+		char tempOp1[10] = "";
+		generateBinaryOfReg(parts[1],tempOp1);
+		/*
+		char tempOp2[10] = "";
+		generateBinaryOfReg(parts[2],tempOp2);*/
+
+		char tempJ[10] = "";
+		generateBinaryOfIntegerBig(parts[3],tempJ);
+
+		strcpy(instr,"000111");
+		strcat(instr,tempOp1);
+		strcat(instr,"00000");
+		strcat(instr,tempJ);
 	}
 
 	else if(strcmp(parts[0],"jal") == 0){printf("jump n link");
-
+		char tempo[10 ] = "";
+		//strcpy(tempo,parts[1]);
+		
+		generateBinaryOfIntegerBigger(parts[1],tempo);
+		
+		strcpy(instr,"000011");
+		strcat(instr,tempo);
 	}
 
 	else if(strcmp(parts[0],"j") == 0){printf("jump");
-
+		char tempo[10 ] = "";
+		//strcpy(tempo,parts[1]);
+		
+		generateBinaryOfIntegerBigger(parts[1],tempo);
+		
+		strcpy(instr,"000010");
+		strcat(instr,tempo);
 	}
 
-	else if(strcmp(parts[0],"jar") == 0){printf("jump reg");
+	else if(strcmp(parts[0],"jr") == 0){printf("jump reg");
+		char tempo[10] = "";
+		generateBinaryOfReg(parts[1],tempo);
 
+		strcpy(instr,"000000");
+		strcat(instr,tempo);
+		strcat(instr,"000000000000000");
+		strcat(instr,"001000");
 	}
 	
 	
@@ -578,6 +663,34 @@ void generateBinaryOfIntegerBig(char* str, char* str1){
 		str2[j] = (binaryNum[j]) + '0';
 
 		int gh = 16 - strlen(str2);
+		for(int gy = 0; gy<gh;gy++) str1[gy] = '0';
+		strcat(str1,str2);
+		
+}
+
+
+
+void generateBinaryOfIntegerBigger(char* str, char* str1){
+	stringstream geek(str); int x = 0; geek >> x;
+	
+		int binaryNum[32]; 
+  	int n = x;
+	    // counter for binary array 
+	    int i = 0; 
+	    while (n > 0) { 
+	  
+		// storing remainder in binary array 
+		binaryNum[i] = n % 2; 
+		n = n / 2; 
+		i++; 
+	    } 
+	  
+		char str2[5] = "";
+	    // printing binary array in reverse order 
+	    for (int j = i - 1; j >= 0; j--) 
+		str2[j] = (binaryNum[j]) + '0';
+
+		int gh = 26 - strlen(str2);
 		for(int gy = 0; gy<gh;gy++) str1[gy] = '0';
 		strcat(str1,str2);
 		
