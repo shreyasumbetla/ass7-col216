@@ -1,84 +1,185 @@
-#include<iostream>
-#include<cmath>
-#include<math.h>
-#include<string>
-#include <bits/stdc++.h> 
-using namespace std; 
-int registers[32];
 
-char* mainmem[4096];
+#include <bits/stdc++.h> 
+
+using namespace std;
+
+
+vector<string> arr;
+vector<int> registers;
+int NumOfInstr = 0;
+vector<int> delay;
+int counter=0;
+float ipc=0.0;
+
+
+///////////////////////////////////////////////////////////////// SHREYA'S PART /////////////////////////////////////////////////////
+vector<string> mainmem[4096];
 int pc;		//program counter
 int pcfixed=0; //for branch statements to prevent pc++ in main function
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+////////////////////////////////////////////////////////////// execution part //////////////////////////////////////////////////////////
+
+
+
+void reverse(string& str) 
+{ 
+    int n = str.length(); 
+  
+    // Swap character starting from two 
+    // corners 
+    for (int i = 0; i < n / 2; i++) 
+        swap(str[i], str[n - i - 1]); 
+} 
+
+
 
 //--------BINARY TO DECIMAL-------------
-int bintodec(char* str){
-	int dec = 0;
-	int m = 1;
-	int k=strlen(str)-1;
-	printf(" int form : %s\n", str);
-	while(k>=0){
-		if(str[k]=='1'){
-			dec+=m;
+int bintodec(string& str){
+
+		int dec = 0;
+		int m = 1;
+		int k=str.length()-1;
+		//printf(" bin form : %s\n", str);
+		cout<<" bin form : "<<str<<endl;
+		cout<<"length of bin: "<<str.length()<<endl;
+		while(k>=0){
+			if(str[k] == '1'){
+				dec+=m;
+			}
+			m*=2;
+			k--;
+
 		}
-		m*=2;
-		k--;
+	
+	
+	//printf(" dec form : %d\n", dec);
+	cout<<" dec form : "<<dec<<endl;
+	return dec;
 
-	}
+}
 
-	printf(" dec form : %d\n", dec);
+//--------BINARY TO DECIMAL SIGNED-------------
+int bintodecsigned(string& str){
+	int dec = 0;
+		if(str.at(0)=='0'){
+			dec = 0;
+			int m = 1;
+			int k=str.length()-1;
+			cout<<" bin form : "<<str<<endl;
+			cout<<"length of bin: "<<str.length()<<endl;
+			while(k>=0){
+				if(str.at(k)=='1'){
+					dec+=m;
+				}
+				m*=2;
+				k--;
+
+			}
+		}
+		else{
+			dec = 0;
+			int m = 1;
+			int k=str.length()-1;
+			cout<<" int form : "<<str<<endl;
+			cout<<"length of bin: "<<str.length()<<endl;
+			while(k>=0){
+				if(str.at(k)=='1'){
+					dec+=m;
+				}
+				m*=2;
+				k--;
+
+			}
+			cout<<pow(2,str.length())<<endl;
+			cout<<"dec form neg "<<dec<<endl;
+			dec = dec - pow(2,str.length());
+		}
+	
+	cout<<" dec form : "<<dec<<endl;
+
 	return dec;
 
 }
 
 
 //---------SUBSTRING-----------------------
-char* substr(char* arr, int begin, int len)
+string substr(string& arr, int begin, int len)
 {
-    char* res = new char[len];
+    string res; //= new char[len];
     for (int i = 0; i < len; i++)
-        res[i] = *(arr + begin + i);
-    res[len] = 0;
+        res.at(i) = arr.at(begin+i);
+    res.at(len) = 0;
     return res;
 }
 
+
 //-----DECIMAL TO BINARY--------------------
-void dectobin(int n,char* str){
-int binaryNum=0; 
-
-    // counter for binary array 
-    int i = 0; 
-	cout<<"in dec to bin n:"<<n<<endl; 
-    while (n > 0) { 
+void dectobin(int n,string& str){
+	int binaryNum=0; 
+	int neg=0;
+    	// counter for binary array 
+    	int i = 0; 
+	cout<<"in dec to bin n:"<<n<<endl;
+	string bin; 
+	if(n<0){
+		n=n+2147483648;
+		neg=1;
+	}
+    	while (n > 0) { 
   
-        // storing remainder in binary array 
-        binaryNum+= (n % 2); 
-	cout<<binaryNum<<endl;
-        n = n / 2; 
-        i++; 
-	binaryNum*=10;
-    } 
-sprintf(str, "%d", binaryNum);
-int l = 0;
-char bin32[32]="";
+        					// storing remainder in binary array 
+		int d = n%2;
+		cout<<"d "<<d<<endl;
+		if(d==1)
+			bin.push_back('1');//strcat(bin,"1");
+		else
+			bin.push_back('0');//strcat(bin,"0");
+       						// binaryNum+= (n % 2); 
+						//cout<<binaryNum<<endl;
+        		n = n / 2; 
+        		i++; 
+						//binaryNum*=10;
+    	} 
+	cout<<bin<<endl;
+	//sprintf(str, "%d", binaryNum);
+	reverse(bin);
+	cout<<bin<<endl;
 
-while(l<(32-strlen(str))){
-strcat(bin32,"0");
-l++;
+	int l = 0;
+	string bin32;
+	cout<<"l "<<bin.length()<<endl;
+
+	while(l<(32-bin.length())){
+		if(neg==0)
+			bin32.push_back('0');//strcat(bin32,"0");
+		else
+			bin32.push_back('1');//strcat(bin32,"1");
+
+		l++;
+	}
+	bin32 = bin32 + bin;//strcat(bin32,bin);
+
+	str = bin32;//strcpy(str,bin32);
+
+
+	cout<<str.length()<<endl;
 }
-strcat(bin32,str);
 
-strcpy(str,bin32);
-cout<<strlen(str)<<endl;
-}
 
+/*
 //---------EXECUTION------------------------
-void execute(char* instr){
-	char opcode[7];
+void execute(string instr){
+	string opcode;
 	printf("in execute\n");
 	strncpy( opcode, instr, 6 );
 	opcode[6] = '\0';
 	printf("opcode %s \n",opcode);
-	char rs[6],rt[6],rd[6],shamt[6],offset[16];
+	string rs; string rt; string rd; string shamt; string offset;
 	strcpy(rs,substr(instr,6,5));
 	strcpy(rt,substr(instr,11,5));
 	strcpy(rd,substr(instr,16,5));
@@ -86,56 +187,56 @@ void execute(char* instr){
 	strcpy(offset,substr(instr,16,16));
 	cout<<"rs with substr"<<rs<<endl;
 	cout<<rs<<" "<<rt<<" "<<rd<<" "<<shamt<<" "<<offset<<endl;
-	printf("check %d \n", strcmp(opcode,"000000"));
-	printf("length %ld \n", strlen(opcode));
+	cout<<"check "<< strcmp(opcode,"000000")<<endl;
+	cout<<("length "<< strlen(opcode)<<endl;
 	if(strcmp(opcode,"000000")==0){
-		printf("in R type\n");	
-		char func[7];
+		cout<<"in R type\n";	
+		string func;
 		strncpy(func, instr+26, 6);
-		func[6]='\0';
-		printf("func %s \n",func);
+		func.at(6) ='\0';
+		cout<<"func "<<func<<endl;
 		if(strcmp(func,"000000")==0){
-			printf("sll\n");
+			cout<<"sll"<<endl;
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
 			int dest = bintodec(rd);
-			int power = bintodec(shamt);
+			int power = bintodecsigned(shamt);
 			registers[dest] = registers[r2] * pow(2,power);
-			printf("reg %d : %d\n",dest,registers[dest]);
+			cout<<"reg "<<dest<<":"<<registers[dest];
 			pcfixed=0;
 		//sll
 		}
 		else if(strcmp(func,"000010")==0){
 			printf("srl\n");
-			char rs[6],rt[6],rd[6],shamt[6];
+			string rs;string rt; string rd; string shamt;
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
 			int dest = bintodec(rd);
-			int power = bintodec(shamt);
-			registers[dest] = registers[r2] / pow(2,power);
-			printf("reg %d : %d\n",dest,registers[dest]);
+			int power = bintodecsigned(shamt);
+			registers.at(dest) = registers.at(r2) / pow(2,power);
+			cout<<"reg  "<<dest<<":"<<registers.at(dest);
 			pcfixed=0;
-		printf("srl\n");			
+		cout<<"srl"<<endl;			
 		//srl
 		}
 		else if(strcmp(func,"100000")==0){
-			printf("add\n");
+			cout<<"add";
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
 			int dest = bintodec(rd);
 
-			registers[dest] = registers[r2] + registers[r1];
-			printf("reg %d : %d\n",dest,registers[dest]);
+			registers.at(dest) = registers.at(r2) + registers.at(r1);
+			cout<<"reg "<<dest<<":"<<registers.at(dest)<<endl;
 			pcfixed=0;
 		//add
 		}
 		else if(strcmp(func,"100010")==0){
-			printf("sub\n");
+			cout<<"sub";
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
 			int dest = bintodec(rd);
-			registers[dest] = registers[r2] - registers[r1];
-			printf("reg %d : %d\n",dest,registers[dest]);
+			registers.at(dest) = registers.at(r2) - registers.at(r1);
+			cout<<"reg "<<dest": "<<registers.at(dest)<<endl;
 			pcfixed=0;
 		//sub
 		}
@@ -143,39 +244,40 @@ void execute(char* instr){
 	
 	}
 	else if(strcmp(opcode,"100011")==0){
-			printf("lw\n");
+			cout<<"lw"<<endl;
 			cout<<rs<<"rt"<<rt<<"offset"<<offset<<endl;
 			//prettyprint(offset);
 			cout<<"after pre "<<offset<<endl;
-			char bin[32]="";
+			string bin;
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
-			int i = bintodec(offset);
-			cout<<"reg r2:"<<mainmem[r1+i]<<r2<<endl;
-			int num = bintodec(mainmem[r1+i]);
+			int i = bintodecsigned(offset);
+			cout<<"reg r2:"<<arr.at(r1+i)<<r2<<endl;
+			int num = bintodec(arr.at(r1+i));
 			cout<<"num "<<num<<endl;
-			registers[r2]=num;
-			printf("registers %d : %d\n",(r2),registers[r2]);
+			registers.at(r2)=num;
+			cout<<"registers "<<(r2)<<": "<<registers.at(r2)<<endl;
 			pcfixed=0;
-		printf("lw\n");
-
+		//printf("lw\n");
+	//lw
 	}
 	else if(strcmp(opcode,"101011")==0){
-			printf("sw\n");
+			cout<<"sw"<<endl;
 			cout<<rs<<"rt"<<rt<<"offset"<<offset<<endl;
-			char bin[32]="";
+			string bin;
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
-			int i = bintodec(offset);
-			cout<<"reg r2:"<<registers[r2]<<r2<<endl;
-			dectobin(registers[r2],bin);
-			cout<<"str bin "<<bin<<endl;
-			mainmem[r1+i]=bin;
-			printf("mainmem %d : %s\n",(r1+i),mainmem[r1+i]);
+			int i = bintodecsigned(offset);
+			cout<<"reg r2:"<<registers.at(r2)<<r2<<endl;
+			dectobin(registers.at(r2),bin);
+			cout<<"str bin "<<bin<<" "<<bin.length()<<endl;
+			//strcpy(arr[r1+i],bin);
+			arr.at(r1+i)=bin;
+			cout<<"arr "<<(r1+i)<<": "<<arr(r1+i)<<endl;
 			pcfixed=0;
 
-		printf("sw\n");
-
+		//printf("sw\n");
+	//sw
 	}
 	else if(strcmp(opcode,"001000")==0){
 
@@ -183,13 +285,13 @@ void execute(char* instr){
 			pcfixed = 1;
 			
 
-		printf("jr\n");
+		cout<<"jr"<<endl;
 	//jr
 	}
 	else if(strcmp(opcode,"000101")==0){
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
-			int i = bintodec(offset);
+			int i = bintodecsigned(offset);
 			if(r1!=r2){
 			pc += i;
 			pcfixed=1;
@@ -198,13 +300,13 @@ void execute(char* instr){
 			pcfixed=0;
 			}
 		
-		printf("bne\n");
+		cout<<"bne"<<endl;
 	//bne
 	}
 	else if(strcmp(opcode,"000100")==0){
 			int r1 = bintodec(rs);
 			int r2 = bintodec(rt);
-			int i = bintodec(offset);
+			int i = bintodecsigned(offset);
 			if(r1==r2){
 			pc += i;
 			pcfixed=1;
@@ -213,12 +315,12 @@ void execute(char* instr){
 			pcfixed=0;
 			}
 		
-		printf("beq\n");
+		cout<<"beq"<<endl;
 	//beq
 	}
 	else if(strcmp(opcode,"000110")==0){
 			int r1 = bintodec(rs);
-			int i = bintodec(offset);
+			int i = bintodecsigned(offset);
 			if(r1<=0){
 			pc += i;
 			pcfixed=1;
@@ -227,12 +329,12 @@ void execute(char* instr){
 			pcfixed=0;
 			}
 		
-		printf("blez\n");
+		cout<<"blez"<<endl;
 	//blez
 	}
 	else if(strcmp(opcode,"000111")==0){
 			int r1 = bintodec(rs);
-			int i = bintodec(offset);
+			int i = bintodecsigned(offset);
 			if(r1>0){
 			pc += i;
 			pcfixed=1;
@@ -241,72 +343,830 @@ void execute(char* instr){
 			pcfixed=0;
 			}
 		
-		printf("bgtz\n");
+		cout<<"bgtz"<<endl;
 	//bgtz
 	}
 	else if(strcmp(opcode,"000010")==0){
-			char jaddr[26];
+			string jaddr;
 			strcpy(jaddr,substr(instr,16,5));
 			pc = bintodec(jaddr);
 			pcfixed = 1;
 			
 
-		printf("j\n");
+		cout<<"j"<<endl;
 	//j
 	}
 	else if(strcmp(opcode,"000011")==0){
-			registers[31]=pc+1;
-			char jaddr[26];
+			registers.at(31)=pc+1;
+			string jaddr;
 			strcpy(jaddr,substr(instr,16,5));
 			pc = bintodec(jaddr);
 			pcfixed = 1;
 			
 
-		printf("j\n");
+		cout<<"j"<<endl;
 	//jal
 	}
 }
 
 
-//----------MAIN FN----------------------------------------
-int main(){
 
-char* test[3];
-for(int p=0;p<=32;p++){
-			registers[p]=0;
-			cout<<registers[p]<<endl;
-			}
-registers[3]=2;
+*/
 
-int i=0;
-printf("in main\n");
 
-for(int i=0;i<4096;i++){
-	//printf("init %d\n",i);
-	mainmem[i] = (char*)malloc(32 * sizeof(char));
-	strcpy(mainmem[i],"00000000000000000000000000000000");
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void generateBinaryOfInteger(string& str, string& str1);
+void generateBinaryOfIntegerBig(string& str, string& str1);
+void generateBinaryOfIntegerBigger(string& str, string& str1);
+void generateBinaryOfReg(string& str, string& str1);
+void parseSpace(string& str, vector<string> parsed);
+//int decode(string& str);
+void proces(string& str);
+
+
+
+
+void initReg(){
+
+	for(int i = 0; i<32;i++)
+		registers.push_back(0);
+
+
 }
-strcpy(mainmem[0],"00000000001000100000100000000000");
-strcpy(mainmem[1],"10001100001000110000100000000000");
-strcpy(mainmem[2],"00000000000000000000000000000000");
 
-i=0;
-for(int p=0;p<5;p++){
-printf(" instr length %ld\n",strlen(mainmem[p]));
-printf(" instr %d %s\n",p,mainmem[p]);
-}
-printf("%d val of i: \n",i);
-printf(" instr %d %s\n",i,mainmem[i]);
-while(strcmp(mainmem[pc],"00000000000000000000000000000000")){
-	printf(" instr %d %s\n",pc,mainmem[pc]);
-	execute(mainmem[pc]);
-	if(!pcfixed){
-	pc++;
+
+
+/////////////////////////////////////////////////////  GENERATE AN INSTRUCTION FROM TOKENS  ///////////////////////////////////////////
+
+
+
+void generateInstr(vector<string> parts, string& instr,string& finalinstr){
+	
+	//char** parts;
+	//parseSpace(str,parts);
+	
+	if(parts.at(0)=="add" ){
+		
+		cout<<"adding"<<endl;
+		
+		string tempDest;
+		generateBinaryOfReg(parts.at(1),tempDest);
+		
+		string tempOp1;
+		generateBinaryOfReg(parts.at(2),tempOp1);
+
+		string tempOp2;
+		generateBinaryOfReg(parts.at(3),tempOp2);
+
+
+		instr = "000000" + tempOp1 + tempOp2 + tempDest + "00000100000";
+	
+		counter+=delay.at(0);
 	}
+
+	else if(parts.at(0)=="sub"){
+
+		cout<<"subtracting"<<endl;
+		
+		string tempDest;
+		generateBinaryOfReg(parts.at(1),tempDest);
+		
+		string tempOp1;
+		generateBinaryOfReg(parts.at(2),tempOp1);
+
+		string tempOp2;
+		generateBinaryOfReg(parts.at(3),tempOp2);
+
+
+		instr = "000000" + tempOp1 + tempOp2 + tempDest + "00000100010";
+		
+		counter+=delay.at(1);
+	}
+
+	else if(parts[0]=="sll" ){
+
+		cout<<"sll"<<endl;
+		
+		
+		string tempDest;
+		generateBinaryOfReg(parts.at(1),tempDest);
+		
+		string tempOp1;
+		generateBinaryOfReg(parts.at(2),tempOp1);
+
+		string tempShamt;
+		generateBinaryOfInteger(parts.at(3),tempShamt);
+		
+		
+		instr = "00000000000" + tempOp1 + tempDest + tempShamt + "000000";
+		
+		counter+=delay.at(2);
+	}
+
+	else if(parts.at(0)=="srl"){
+
+		cout<<"srl"<<endl;
+		
+		string tempDest;
+		generateBinaryOfReg(parts.at(1),tempDest);
+		
+		string tempOp1;
+		generateBinaryOfReg(parts.at(2),tempOp1);
+
+		string tempShamt;
+		generateBinaryOfInteger(parts.at(3),tempShamt);
+		
+		
+		instr = "00000000000" + tempOp1 + tempDest + tempShamt + "000010";
+	
+		counter+=delay.at(3);
+
+	}
+
+	
+	else if(parts[0]=="beq"){
+	
+		cout<<"beq"<<endl;
+		
+		string tempOp1;
+		generateBinaryOfReg(parts.at(1),tempOp1);
+
+		string tempOp2;
+		generateBinaryOfReg(parts.at(2),tempOp2);
+
+		string tempJ;
+		generateBinaryOfIntegerBig(parts.at(3),tempJ);
+
+		instr = "000100" + tempOp1 + tempOp2 + tempJ;
+
+				counter+=delay.at(4);
+		
+	}
+
+	else if(parts[0]=="bne"){
+		cout<<"bne"<<endl;
+		string tempOp1;
+		generateBinaryOfReg(parts.at(1),tempOp1);
+
+		string tempOp2;
+		generateBinaryOfReg(parts.at(2),tempOp2);
+
+		string tempJ;
+		generateBinaryOfIntegerBig(parts.at(3),tempJ);
+
+		instr = "000101" + tempOp1 + tempOp2 + tempJ;
+
+		counter+=delay.at(5);
+	}
+
+
+	else if(parts.at(0)=="blez"){
+		cout<<"blez"<<endl;
+		string tempOp1;
+		generateBinaryOfReg(parts[1],tempOp1);
+		
+		string tempJ;
+		generateBinaryOfIntegerBig(parts.at(2),tempJ);
+
+		instr = "000110" + tempOp1 + "00000" + tempJ;
+
+
+		counter+=delay.at(6);
+	}
+
+
+	else if(parts.at(0)=="bgtz"){
+		cout<<"bgtz"<<endl;
+
+
+
+		string tempOp1;
+		generateBinaryOfReg(parts.at(1),tempOp1);
+		
+
+		string tempJ;
+		generateBinaryOfIntegerBig(parts.at(2),tempJ);
+
+		instr = "000111" + tempOp1 + "00000" + tempJ;
+
+		counter+=delay.at(7);
+	}
+
+	else if(parts.at(0)=="jal"){
+
+		printf("jump n link");
+		string tempo;
+		//strcpy(tempo,parts[1]);
+		
+		generateBinaryOfIntegerBigger(parts.at(1),tempo);
+		
+		instr = "000011" + tempo;
+
+		//strcpy(instr,"000011");
+		//strcat(instr,tempo);
+		counter+=delay.at(8);
+	}
+
+	else if(parts.at(0)=="j"){
+
+		printf("jump");
+		string tempo;
+		//strcpy(tempo,parts[1]);
+		
+		generateBinaryOfIntegerBigger(parts.at(1),tempo);
+		
+		instr = "000010" + tempo;
+		//strcpy(instr,"000010");
+		//strcat(instr,tempo);
+		counter+=delay.at(9);
+	}
+
+	else if(parts.at(0)=="jr"){
+
+		printf("jump reg");
+		string tempo;
+		generateBinaryOfReg(parts.at(1),tempo);
+
+		instr = "000000" + tempo + "000000000000000" + "001000";
+
+		
+		counter+=delay.at(10);
+	}
+	
+	
+	else if(parts.at(0)=="lw"){
+		printf("\nload word\n");
+		string tempDest;
+		generateBinaryOfReg(parts.at(1),tempDest);
+
+		string tempo;
+		string offset;
+
+		int gf = 0;
+		tempo = parts.at(2);
+		//strcpy(tempo,parts.at(2));
+		
+		for(gf= 0; tempo[gf] != '(';gf++)
+			offset.push_back(tempo[gf]);
+			
+		
+		string ba;
+		for(int gi = gf+1; tempo[gi] != ')'; gi++)
+			ba.push_back(tempo[gi]);
+
+		
+		string baseadd;
+		generateBinaryOfReg(ba,baseadd);
+		string off;
+		generateBinaryOfIntegerBig(offset,off);
+		
+		instr = "100011" + baseadd + tempDest + off;
+
+		
+				counter+=delay.at(11);
+		
+		
+	}
+
+	
+	else if(parts.at(0)=="sw"){
+
+
+		printf("\nstore word\n");
+		string tempDest;
+		generateBinaryOfReg(parts.at(1),tempDest);
+
+		string tempo;
+		string offset;
+
+		int gf = 0;
+		tempo = parts.at(2);
+		//strcpy(tempo,parts.at(2));
+		for(gf= 0; tempo.at(gf) != '(';gf++)
+			offset.push_back(tempo.at(gf));
+			
+
+		string ba;
+		for(int gi = gf+1; tempo.at(gi) != ')'; gi++)
+			ba.push_back(tempo.at(gi));
+
+		string baseadd;
+		generateBinaryOfReg(ba,baseadd);
+		string off;
+		generateBinaryOfIntegerBig(offset,off);
+
+		instr = "101011" + baseadd + tempDest + off;
+
+		
+		
+			counter+=delay.at(12);	
+	}
+
+	
+	
+	arr.push_back(instr);
+	cout<<arr.at(NumOfInstr)<<endl;
+	cout<<"final"<<instr<<endl;
+
+
+
+
 }
 
-printf("no of instr : %d\n",pc);
-return 0;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////// FROM INTEGER IN FORM OF DECIMAL STRING TO BINARY STRING  /////////////////////////////////////////////////////////////////
+void generateBinaryOfInteger(string& str, string& str1){
+	stringstream geek(str); int x = 0; geek >> x;
+	
+		int binaryNum[32]; 
+  	int n = x;
+	    // counter for binary array 
+	    int i = 0; 
+	    while (n > 0) { 
+	  
+		// storing remainder in binary array 
+		binaryNum[i] = n % 2; 
+		n = n / 2; 
+		i++; 
+	    } 
+	  
+		string str2;
+	    // printing binary array in reverse order 
+	    for (int j = 0; j <i; j++) 
+		str2.push_back((binaryNum[j]) + '0');
+
+	reverse(str2.begin(),str2.end());
+		int gh = 5 - str2.length();
+		for(int gy = 0; gy<gh;gy++) str1.push_back('0');
+		str1 = str1 + str2;
+		
 }
 
+
+
+
+
+void generateBinaryOfIntegerBig(string& str, string& str1){
+	stringstream geek(str); int x = 0; geek >> x;
+	
+		int binaryNum[32]; 
+  	int n = x;
+	    // counter for binary array 
+	    int i = 0; 
+	    while (n > 0) { 
+	  
+		// storing remainder in binary array 
+		binaryNum[i] = n % 2; 
+		n = n / 2; 
+		i++; 
+	    } 
+	  
+		string str2;
+	    // printing binary array in reverse order 
+	    for (int j = 0; j <i; j++) 
+		str2.push_back((binaryNum[j]) + '0');
+
+		
+	reverse(str2.begin(),str2.end());
+		int gh = 16 - str2.length();
+		for(int gy = 0; gy<gh;gy++) str1.push_back('0');
+		str1 = str1 + str2;
+		
+}
+
+
+
+void generateBinaryOfIntegerBigger(string& str, string& str1){
+	stringstream geek(str); int x = 0; geek >> x;
+	
+		int binaryNum[32]; 
+  	int n = x;
+	    // counter for binary array 
+	    int i = 0; 
+	    while (n > 0) { 
+	  
+		// storing remainder in binary array 
+		binaryNum[i] = n % 2; 
+		n = n / 2; 
+		i++; 
+	    } 
+	  
+		string str2;
+	    // printing binary array in reverse order 
+	    for (int j = 0; j < i; j++) 
+		str2.push_back((binaryNum[j]) + '0');
+	reverse(str2.begin(),str2.end());
+		int gh = 26 - str2.length();
+		for(int gy = 0; gy<gh;gy++) str1.push_back('0');
+		str1 = str1 + str2;
+		
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+////////////////////////////////////////////////////////////// BINARY CODE FOR A REGISTER  ///////////////////////////////////////////////////////////////////////////////
+void generateBinaryOfReg(string& str, string& str1){
+
+	if(str == "$zero") str1 = "00000";
+	else if(str == "$at") str1 = "00001";
+	else if(str == "$v0") str1 = "00010";
+	else if(str == "$v1") str1 = "00011";
+	else if(str == "$a0") str1 = "00100";
+	else if(str == "$a1") str1 = "00101";
+	else if(str == "$a2") str1 = "00110";
+	else if(str == "$a3") str1 = "00111";
+	else if(str == "$t0") str1 = "01000";
+	else if(str == "$t1") str1 = "01001";
+	else if(str == "$t2") str1 = "01010";
+	else if(str == "$t3") str1 = "01011";
+	else if(str == "$t4") str1 = "01100";
+	else if(str == "$t5") str1 = "01101";
+	else if(str == "$t6") str1 = "01110";
+	else if(str == "$t7") str1 = "01111";
+	else if(str == "$s0") str1 = "10000";
+	else if(str == "$s1") str1 = "10001";
+	else if(str == "$s2") str1 = "10010";
+	else if(str == "$s3") str1 = "10011";
+	else if(str == "$s4") str1 = "10100";
+	else if(str == "$s5") str1 = "10101";
+	else if(str == "$s6") str1 = "10110";
+	else if(str == "$s7") str1 = "10111";
+	else if(str == "$t8") str1 = "11000";
+	else if(str == "$t9") str1 = "11001";
+	else if(str == "$k0") str1 = "11010";
+	else if(str == "$k1") str1 = "11011";
+	else if(str == "$gp") str1 = "11100";
+	else if(str == "$sp") str1 = "11101";
+	else if(str == "$fp") str1 = "11110";
+	else if(str == "$ra") str1 = "11111";
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+void generateCoe(FILE* poin,char** ){
+	
+	
+	
+
+}
+*/
+
+
+
+//////////////////////////////////////////////////////// PARSE SPACES AND TOKENISE  /////////////////////////////////////////////////////////////////////////////
+void parseSpace(string& str, vector<string> parsed)
+{
+
+
+	/*
+	int i;
+
+	for (i = 0; i < 100; i++) {
+		parsed[i] = strsep(&str, " ");
+
+		if (parsed[i] == NULL)
+			break;
+		if (strlen(parsed[i]) == 0)
+			i--;
+	}*/
+
+
+	printf("inside parse");
+	stringstream check1(str);
+
+
+	string intermediate; 
+      
+    // Tokenizing w.r.t. space ' ' 
+    while(getline(check1, intermediate, ' ')) 
+    { 
+        parsed.push_back(intermediate); 
+    } 
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+/////////////////////////////////////////////////// DECODE REGISTERS INTO INTEGER VALUES ///////////////////////////////////////////////////////////////////////
+/////////////8888888888888888888888888888888888888888888888
+/*
+int decode(string str){
+
+	if(strcmp(str,"$zero")==0) return 0;
+	else if(strcmp(str,"$at")==0) return 1;
+	else if(strcmp(str,"$v0")==0) return 2;
+	else if(strcmp(str,"$v1")==0) return 3;
+	else if(strcmp(str,"$a0")==0) return 4;
+	else if(strcmp(str,"$a1")==0) return 5;
+	else if(strcmp(str,"$a2")==0) return 6;
+	else if(strcmp(str,"$a3")==0) return 7;
+	else if(strcmp(str,"$t0")==0) return 8;
+	else if(strcmp(str,"$t1")==0) return 9;
+	else if(strcmp(str,"$t2")==0) return 10;
+	else if(strcmp(str,"$t3")==0) return 11;
+	else if(strcmp(str,"$t4")==0) return 12;
+	else if(strcmp(str,"$t5")==0) return 13;
+	else if(strcmp(str,"$t6")==0) return 14;
+	else if(strcmp(str,"$t7")==0) return 15;
+	else if(strcmp(str,"$s0")==0) return 16;
+	else if(strcmp(str,"$s1")==0) return 17;
+	else if(strcmp(str,"$s2")==0) return 18;
+	else if(strcmp(str,"$s3")==0) return 19;
+	else if(strcmp(str,"$s4")==0) return 20;
+	else if(strcmp(str,"$s5")==0) return 21;
+	else if(strcmp(str,"$s6")==0) return 22;
+	else if(strcmp(str,"$s7")==0) return 23;
+	else if(strcmp(str,"$t8")==0) return 24;
+	else if(strcmp(str,"$t9")==0) return 25;
+	else if(strcmp(str,"$k0")==0) return 26;
+	else if(strcmp(str,"$k1")==0) return 27;
+	else if(strcmp(str,"$gp")==0) return 28;
+	else if(strcmp(str,"$sp")==0) return 29;
+	else if(strcmp(str,"$fp")==0) return 30;
+	else if(strcmp(str,"$ra")==0) return 31;
+
+	else return 32;	
+
+
+
+
+}*/
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////// PROCESS ONE LINE INSTRUCTION ////////////////////////////////////////////////////////////
+void proces(vector<string> parts){
+
+
+	
+	//vector<string> parts;
+	//parseSpace(str,parts);
+
+	string str1;
+	string finalinstr;
+	generateInstr(parts,str1,finalinstr);
+
+
+	/*
+	if(strcmp(parts[0],"add") == 0){printf("adding");
+		int dest = decode(parts[1]);
+		int op1 = decode(parts[2]);
+		int op2 = decode(parts[3]);
+		registers[dest] = registers[op1] + registers[op2];
+	}
+
+	else if(strcmp(parts[0],"sub") == 0){printf("subtracting");
+		int dest = decode(parts[1]);
+		int op1 = decode(parts[2]);
+		int op2 = decode(parts[3]);
+		registers[dest] = registers[op1] - registers[op2];
+	}
+
+	else if(strcmp(parts[0],"sll") == 0){printf("sll");
+		
+		int dest = decode(parts[1]);
+		int op1 = decode(parts[2]);
+		//int op2 = strtoi(parts[3]);
+		stringstream geek(parts[3]); int x = 0; geek >> x;
+		registers[dest] = registers[op1] * pow(2,x);
+		//registers(dest) = registers(op1) + registers(op2);
+	}
+
+	else if(strcmp(parts[0],"srl") == 0){printf("srl");
+		int dest = decode(parts[1]);
+		int op1 = decode(parts[2]);
+		//int op2 = strtoi(parts[3]);
+		stringstream geek(parts[3]); int x = 0; geek >> x;
+		registers[dest] = registers[op1] / pow(2,x);
+		//registers(dest) = registers(op1) + registers(op2);
+
+	}
+
+	
+	else if(strcmp(parts[0],"beq") == 0){printf("beq");
+		
+	}
+
+	else if(strcmp(parts[0],"bne") == 0){printf("bne");
+
+	}
+
+	else if(strcmp(parts[0],"jal") == 0){printf("jump n link");
+
+	}
+
+	else if(strcmp(parts[0],"j") == 0){printf("jump");
+
+	}
+
+	else if(strcmp(parts[0],"jar") == 0){printf("jump reg");
+
+	}
+	
+	
+	else if(strcmp(parts[0],"lw") == 0){printf("beq");
+		
+	}
+
+	
+	else if(strcmp(parts[0],"sw") == 0){printf("beq");
+		
+	}
+
+	
+
+	return 0;*/
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+///////////////////////////////////////////////////////////////////// END OF PARSING PART //////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////// START OF MAIN PART /////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////// MAIN ///////////////////////////////////////////////////////////////////////////////////
+int main (int agrc, char** argv)
+{
+
+	
+	initReg();
+
+	for(int i=0;i<4096;i++) arr.push_back("00000000000000000000000000000000");
+
+
+
+	//////////////////////////////////////// DELAY FILE //////////////////////////////////////////////////////////////////////////////
+
+
+	
+	FILE* fptr2;
+	if ((fptr2 = fopen(argv[1], "r")) == NULL) {
+        	printf("Error! opening file");
+      
+        	exit(1);
+    	}
+
+
+
+
+
+    	char buffer2[100] = "";
+	
+
+	
+    	while(fgets(buffer2,sizeof buffer2, fptr2) != NULL){
+
+		if(strcmp(buffer2,"\n")!=0){
+			cout<<"buffer :"<<buffer2<<"done"<<endl;
+			string line = buffer2;
+			cout<<"line :"<<line<<endl;
+			
+			string chars = " ";
+
+			vector<string> result;
+			
+			for (char c: chars) {
+			    replace(line.begin(), line.end(), c, ' ');
+			}
+			 cout<<line<<endl;
+			istringstream iss(line);
+				for (string s; iss>>s;){
+			    		if(s.compare("")!=0){
+						result.push_back(s);    
+			    		}
+			    
+				}
+			
+			cout<<"result parameters :";
+			for(int g = 0; g<2; g++)
+			 cout<<result[g]<<" ";
+
+			delay.push_back(stoi(result.at(1)));
+		}
+
+		
+		
+		cout<<endl;
+		
+		
+	
+	}
+	
+	for(int i=0;i<12;i++) cout<<delay[i]<<" ";
+
+	cout<<"delay parameters taken"<<endl;
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+
+
+	////////////////////////// INSTRUCTION FILE ////////////////////////////////////////////////////////////////
+	
+	FILE* fptr;
+	if ((fptr = fopen(argv[2], "r")) == NULL) {
+        printf("Error! opening file");
+      
+        exit(1);
+    	}
+	
+    	int lineNum = 0;
+
+    	char buffer[1000] = "";
+
+	int count=0;
+
+    	while(fgets(buffer,sizeof buffer, fptr) != NULL){
+		
+
+
+		if(strcmp(buffer,"\n")!=0){
+			cout<<"buffer :"<<buffer<<"done"<<endl;
+			string line = buffer;
+			cout<<"line :"<<line<<endl;
+			
+			string chars = " ";
+
+			vector<string> result;
+			
+			for (char c: chars) {
+			    replace(line.begin(), line.end(), c, ' ');
+			}
+			 cout<<line<<endl;
+			int j =0;
+			istringstream iss(line);
+				for (string s; iss>>s;){
+			    		if(s.compare("")!=0){
+						result.push_back(s); j++;   
+			    		}
+			    
+				}
+			
+			cout<<"result parameters :";
+			for(int g = 0; g<j; g++)
+			 cout<<result[g]<<" ";
+
+			proces(result);
+			NumOfInstr++;
+		}
+
+		
+		
+
+	}
+	cout<<"\ntotal num of instructions = "<<NumOfInstr<<endl;
+	//cout<<" Total number of cycles : "<<counter<<endl;
+	//cout<<" IPC : "<<(float)((float)counter/(float)NumOfInstr)<<endl;
+	pc=0;
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/*		
+	while(strcmp(arr[pc],"00000000000000000000000000000000")!=0){
+		printf(" instr %d %s\n",pc,arr[pc]);
+		execute(arr[pc]);
+		if(!pcfixed){
+		pc++;
+		}
+	}
+	*/
+
+	//printf("%s\n",arr[NumOfInstr-1]);
+	//fclose(fptr);
+	fclose(fptr2);
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
